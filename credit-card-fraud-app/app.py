@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request
 import pickle
 import numpy as np
+import os
 
 app = Flask(__name__)
 
 # Load trained model and scaler
 model = pickle.load(open("model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
-
 
 @app.route("/")
 def home():
@@ -17,37 +17,15 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
 
-    input_features = []
+    features = [float(x) for x in request.form.values()]
+    features = np.array(features).reshape(1, -1)
 
-    # Collect V1–V10 inputs
-    for i in range(1, 11):
-        value = request.form.get(f"V{i}")
+    scaled_features = scaler.transform(features)
 
-        # Handle empty inputs
-        if value is None or value.strip() == "":
-            value = 0
-
-        input_features.append(float(value))
-
-    # Collect Amount
-    amount = request.form.get("Amount")
-
-    if amount is None or amount.strip() == "":
-        amount = 0
-
-    input_features.append(float(amount))
-
-    # Convert to numpy array
-    final_features = np.array(input_features).reshape(1, -1)
-
-    # Scale features
-    scaled_features = scaler.transform(final_features)
-
-    # Predict
     prediction = model.predict(scaled_features)
 
     if prediction[0] == 1:
-        result = "⚠️ Fraud Transaction Detected"
+        result = "⚠ Fraud Transaction Detected"
     else:
         result = "✅ Normal Transaction"
 
@@ -55,4 +33,5 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
