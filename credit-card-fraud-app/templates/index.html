@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Credit Card Fraud Detection</title>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>💳 Fraud Detection System</h1>
+
+<form action="/predict" method="POST">
+
+<input type="number" step="any" name="Amount" placeholder="Transaction Amount" required>
+
+<input type="number" step="any" name="V1" placeholder="V1">
+<input type="number" step="any" name="V2" placeholder="V2">
+<input type="number" step="any" name="V3" placeholder="V3">
+<input type="number" step="any" name="V4" placeholder="V4">
+<input type="number" step="any" name="V5" placeholder="V5">
+<input type="number" step="any" name="V6" placeholder="V6">
+<input type="number" step="any" name="V7" placeholder="V7">
+<input type="number" step="any" name="V8" placeholder="V8">
+<input type="number" step="any" name="V9" placeholder="V9">
+<input type="number" step="any" name="V10" placeholder="V10">
+
+<button type="submit">🔍 Predict Transaction</button>
+
+</form>
+
+</div>
+
+</body>
+</html>
