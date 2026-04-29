@@ -1,37 +1,35 @@
-from flask import Flask, render_template, request
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
 import pickle
-import numpy as np
-import os
 
-app = Flask(__name__)
+# Load dataset
+data = pd.read_csv("creditcard.csv")
 
-# Load trained model and scaler
-model = pickle.load(open("model.pkl", "rb"))
-scaler = pickle.load(open("scaler.pkl", "rb"))
+features = ["Amount","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10"]
+X = data[features]
+y = data["Class"]
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+# Split data FIRST (important)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
+# Apply SMOTE only on training data
+smote = SMOTE()
+X_train_sm, y_train_sm = smote.fit_resample(X_train, y_train)
 
-@app.route("/predict", methods=["POST"])
-def predict():
+# Scale data
+scaler = StandardScaler()
+X_train_sm = scaler.fit_transform(X_train_sm)
+X_test = scaler.transform(X_test)
 
-    features = [float(x) for x in request.form.values()]
-    features = np.array(features).reshape(1, -1)
+# Train Random Forest model
+model = RandomForestClassifier(n_estimators=100)
+model.fit(X_train_sm, y_train_sm)
 
-    scaled_features = scaler.transform(features)
+# Save model & scaler
+pickle.dump(model, open("model.pkl", "wb"))
+pickle.dump(scaler, open("scaler.pkl", "wb"))
 
-    prediction = model.predict(scaled_features)
-
-    if prediction[0] == 1:
-        result = "⚠ Fraud Transaction Detected"
-    else:
-        result = "✅ Normal Transaction"
-
-    return render_template("result.html", prediction=result)
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+print("Random Forest + SMOTE model saved successfully!")
